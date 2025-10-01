@@ -1,22 +1,100 @@
+from csv import writer
+
 def carica_da_file(file_path):
-    """Carica i libri dal file"""
-    # TODO
+    """Carica i libri dal file CSV e restituisce una lista di dizionari"""
+
+    try:
+        file_input = open(file_path, "r", encoding="utf-8")
+        record = []  # lista di dizionari
+
+        for righe in file_input:
+            riga = righe.strip()  # rimuove \n e spazi
+            if riga == "":   # se la riga è vuota → salto
+                continue
+
+            lista = riga.split(",")  # divide la riga in parti
+
+            if len(lista) < 5:   # se non ci sono abbastanza colonne → salto
+                print("Riga ignorata perché incompleta:", riga)
+                continue
+
+            try:
+                record.append({
+                    "Titolo Libro": lista[0],
+                    "Autore": lista[1],
+                    "Anno": int(lista[2]),
+                    "Numero Pagine": int(lista[3]),
+                    "Sezione": int(lista[4])
+                })
+            except ValueError:
+                # Se non riesco a convertire i numeri → salto la riga
+                print("Riga ignorata perché ha valori non validi:", riga)
+                pass
+
+        return record
+
+    except FileNotFoundError:
+        print("Il nome del file sorgente inserito non è corretto.")
+        return None
+
+    finally:
+        try:
+            file_input.close()
+        except:
+            pass
+
+
 
 
 def aggiungi_libro(biblioteca, titolo, autore, anno, pagine, sezione, file_path):
     """Aggiunge un libro nella biblioteca"""
-    # TODO
+    aggiungo_nuovo_libro = True
+    for elemento in biblioteca:
+        if (elemento["Titolo Libro"].lower() == titolo.lower() and elemento["Autore"].lower() == autore.lower()):
+            print("Questo libro è già presente nella biblioteca")
+            print(f"Eccolo: {elemento}")
+            aggiungo_nuovo_libro = False
+            break #se trovo il libro già presente smetto di iterare
+        elif sezione < 1 or sezione > 5:
+            print("Questa sezione non è disponibile (range 1-5)")
+            aggiungo_nuovo_libro = False
+
+    if aggiungo_nuovo_libro: #cioè se ha passato tutti i controlli precedenti
+        biblioteca.append({
+            "Titolo Libro": titolo,
+            "Autore": autore,
+            "Anno": anno,
+            "Numero Pagine": pagine,
+            "Sezione": sezione})
+        try:
+            with open(file_path, "a",newline='', encoding="utf-8") as fileaperto:
+                csvWriter = writer(fileaperto)
+                csvWriter.writerow([titolo, autore, anno, pagine, sezione]) #non necessario fare controllo sulla pulizia o su int perchè già fatta nel main
+        except Exception: #eccezione generale
+            print("Errore durante l'aggiunta del nuovo libro nel file")
+
+    return aggiungo_nuovo_libro #variabile boolena vera se agggiungo, falso se non aggiungo
+
 
 
 def cerca_libro(biblioteca, titolo):
     """Cerca un libro nella biblioteca dato il titolo"""
+    for elemento in biblioteca:
+        if elemento["Titolo Libro"] == titolo:
+            return elemento
+
     # TODO
 
 
 def elenco_libri_sezione_per_titolo(biblioteca, sezione):
     """Ordina i titoli di una data sezione della biblioteca in ordine alfabetico"""
-    # TODO
+    libri_di_sezione=[]
+    for elemento in biblioteca:
+        if elemento["Sezione"] == sezione:
+            libri_di_sezione.append(elemento)
 
+    lista_ordinata_per_nome = sorted(libri_di_sezione, key=lambda libro: libro['Titolo Libro'])
+    return lista_ordinata_per_nome
 
 def main():
     biblioteca = []

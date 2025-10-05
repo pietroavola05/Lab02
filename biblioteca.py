@@ -9,12 +9,12 @@ def carica_da_file(file_path):
 
         for righe in file_input:
             riga = righe.strip()  # rimuove \n e spazi
-            if riga == "":   # se la riga è vuota → salto
+            if riga == "":   # se la riga è vuota, salto
                 continue
 
             lista = riga.split(",")  # divide la riga in parti
 
-            if len(lista) < 5:   # se non ci sono abbastanza colonne → salto
+            if len(lista) < 5:   #se non ci sono abbastanza colonne (da titolo a sezione), salto.
                 print("Riga ignorata perché incompleta:", riga)
                 continue
 
@@ -58,8 +58,11 @@ def aggiungi_libro(biblioteca, titolo, autore, anno, pagine, sezione, file_path)
         elif sezione < 1 or sezione > 5:
             print("Questa sezione non è disponibile (range 1-5)")
             aggiungo_nuovo_libro = False
+            break #non posso aggiungere un libro con sezione sbagliata
 
     if aggiungo_nuovo_libro: #cioè se ha passato tutti i controlli precedenti
+        """Aggiunge il libro nella lista di dizionari direttamente qui ma poteva esser fatto dopo il try richiamando la funzione 
+        carica da file che sovrascriveva tutti i vecchi dati già presenti aggiungendo anche il nuovo libro"""
         biblioteca.append({
             "Titolo Libro": titolo,
             "Autore": autore,
@@ -69,7 +72,8 @@ def aggiungi_libro(biblioteca, titolo, autore, anno, pagine, sezione, file_path)
         try:
             with open(file_path, "a",newline='', encoding="utf-8") as fileaperto:
                 csvWriter = writer(fileaperto)
-                csvWriter.writerow([titolo, autore, anno, pagine, sezione]) #non necessario fare controllo sulla pulizia o su int perchè già fatta nel main
+                csvWriter.writerow([titolo, autore, anno, pagine, sezione]) #non necessario fare controllo sulla pulizia o su conversione int perchè già fatta nel main
+                print(f"Riferimenti libro:\t\n Titolo: {titolo} \t\n Autore: {autore}\t\n Anno: {anno} \t\n Numero Pagine: {pagine} \t\n Sezione: {sezione}")
         except Exception: #eccezione generale
             print("Errore durante l'aggiunta del nuovo libro nel file")
 
@@ -80,7 +84,7 @@ def aggiungi_libro(biblioteca, titolo, autore, anno, pagine, sezione, file_path)
 def cerca_libro(biblioteca, titolo):
     """Cerca un libro nella biblioteca dato il titolo"""
     for elemento in biblioteca:
-        if elemento["Titolo Libro"] == titolo:
+        if elemento["Titolo Libro"].lower()== titolo.lower(): #prevede inserimento della ricerca tutto in minuscolo
             return elemento
 
     # TODO
@@ -89,9 +93,16 @@ def cerca_libro(biblioteca, titolo):
 def elenco_libri_sezione_per_titolo(biblioteca, sezione):
     """Ordina i titoli di una data sezione della biblioteca in ordine alfabetico"""
     libri_di_sezione=[]
-    for elemento in biblioteca:
-        if elemento["Sezione"] == sezione:
-            libri_di_sezione.append(elemento)
+    procedi_con_ordinamento= True
+    while procedi_con_ordinamento: #variabile di tipo bool così da controllare range (1-5) di sezione
+        if sezione > 0 and sezione < 6:
+            for elemento in biblioteca:
+                if elemento["Sezione"] == sezione:
+                    libri_di_sezione.append(elemento)
+            procedi_con_ordinamento= False
+        else:
+            print("Hai inserito una sezione non presente nella biblioteca\n")
+            sezione = int(input("Inserisci una sezione (1-5): "))
 
     lista_ordinata_per_nome = sorted(libri_di_sezione, key=lambda libro: libro['Titolo Libro'])
     return lista_ordinata_per_nome
